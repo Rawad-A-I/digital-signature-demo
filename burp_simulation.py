@@ -10,8 +10,8 @@ from cryptography.hazmat.primitives.asymmetric import padding as asy_padding
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
 
-BASE_SENDER = "http://127.0.0.1"
-BASE_RECEIVER = "http://127.0.0.1"
+BASE_SENDER = "http://127.0.0.1:8000/level"
+BASE_RECEIVER = "http://127.0.0.1:8000/level"
 
 def print_result(level, test_name, expected, actual, details=""):
     status = "PASS" if expected == actual else "FAIL"
@@ -32,7 +32,7 @@ def test_level1_burp():
     print(f"2. Attacker Intercepts & Modifies to: '{tampered_msg}'")
     
     # Simulate forwarding tampered message to Receiver
-    url = f"{BASE_RECEIVER}:8021/receive"
+    url = f"{BASE_RECEIVER}1/receive"
     payload = {"message": tampered_msg}
     
     try:
@@ -62,7 +62,7 @@ def test_level2_burp():
     # Actually, hashing alone doesn't prove WHO sent it, but if we change message and keep old hash, it fails integrity.
     print(f"3. Attacker modifies message to '{tampered_msg}' but keeps OLD hash.")
     
-    url = f"{BASE_RECEIVER}:8011/verify"
+    url = f"{BASE_RECEIVER}2/verify"
     payload = {
         "message": tampered_msg,
         "hash": original_hash
@@ -87,7 +87,7 @@ def test_level3_burp():
     
     # 1. Sign original message (using Sender's key)
     # We can use the sender app to get a valid signature first
-    sender_res = requests.post(f"{BASE_SENDER}:8002/sign", json={"message": msg}).json()
+    sender_res = requests.post(f"{BASE_SENDER}3/sign", json={"message": msg}).json()
     valid_sig = sender_res["signature_b64"]
     
     print(f"1. Original Message: '{msg}'")
@@ -96,7 +96,7 @@ def test_level3_burp():
     # 3. Attacker modifies message
     print(f"3. Attacker modifies message to '{tampered_msg}' but keeps OLD signature.")
     
-    url = f"{BASE_RECEIVER}:8001/verify"
+    url = f"{BASE_RECEIVER}3/verify"
     payload = {
         "message": tampered_msg,
         "signature_b64": valid_sig
